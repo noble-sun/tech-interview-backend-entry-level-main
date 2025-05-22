@@ -37,6 +37,19 @@ class CartsController < ApplicationController
     render json: cart, serializer: CartSerializer, status: :ok
   end
 
+  def remove_item
+    cart = Cart.find_by(id: session[:cart_id])
+    raise CartNotFoundError unless cart
+
+    item = cart.cart_items.find_by(product_id: params[:product_id])
+    return render json: { error: "Product is not currently in cart." }, status: :not_found unless item
+
+    item.destroy!
+    cart.recalculate_total_price!
+
+    render json: cart.reload, serializer: CartSerializer, status: :ok
+  end
+
   private
 
   def cart_params

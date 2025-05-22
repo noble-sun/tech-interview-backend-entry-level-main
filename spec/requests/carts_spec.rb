@@ -152,4 +152,78 @@ RSpec.describe "Carts", type: :request do
       end
     end
   end
+
+  describe "DELETE /cart/:product_id" do
+    context "remove product from the cart" do
+      it "successfully" do
+        cart = create(:cart, total_price: 60.0)
+        product = create(:product, name: "Product One", price: 10.0)
+        product_2 = create(:product, name: "Product Two", price: 20.0)
+        create(:cart_item, cart:, product:, quantity: 2, unit_price: 10.0, total_price: 20.0 )
+        create(:cart_item, cart:, product: product_2, quantity: 2, unit_price: 20.0, total_price: 40.0 )
+
+        allow_any_instance_of(ActionDispatch::Request::Session)
+          .to receive(:[]).with(:cart_id).and_return(cart.id)
+
+        delete remove_item_cart_path(product.id)
+
+        cart.reload
+        expect(cart.cart_items.count).to eq(1)
+        expect(cart.total_price).to eq(40.0)
+        expect(response).to have_http_status(:success)
+        expect(response.parsed_body.deep_symbolize_keys[:products])
+          .to_not include(id: product.id)
+      end
+
+      context "when cart only have one product" do
+        it "return cart with empty products list" do
+          cart = create(:cart, total_price: 60.0)
+          product = create(:product, name: "Product One", price: 10.0)
+          create(:cart_item, cart:, product:, quantity: 2, unit_price: 10.0, total_price: 20.0 )
+
+          allow_any_instance_of(ActionDispatch::Request::Session)
+            .to receive(:[]).with(:cart_id).and_return(cart.id)
+
+          delete remove_item_cart_path(product.id)
+
+          cart.reload
+          expect(cart.cart_items.count).to eq(0)
+          expect(cart.total_price).to eq(0.0)
+          expect(response).to have_http_status(:success)
+          expect(response.parsed_body.symbolize_keys)
+            .to eq({ id: cart.id, total_price: "0.0", products: [] })
+        end
+      end
+
+      context "when there isn't a cart available" do
+        it "return error" do
+          product = create(:product)
+
+          delete remove_item_cart_path(product.id)
+
+          expect(response).to have_http_status(:not_found)
+          expect(response.parsed_body.deep_symbolize_keys)
+            .to eq({error: "Cart not found."})
+        end
+      end
+
+      context "when product is not in the cart" do
+        it "return error" do
+          cart = create(:cart, total_price: 60.0)
+          product = create(:product, name: "Product One", price: 10.0)
+          product_not_in_cart = create(:product, name: "Product Two", price: 20.0)
+          create(:cart_item, cart:, product:, quantity: 2, unit_price: 10.0, total_price: 20.0 )
+
+          allow_any_instance_of(ActionDispatch::Request::Session)
+            .to receive(:[]).with(:cart_id).and_return(cart.id)
+
+          delete remove_item_cart_path(product_not_in_cart.id)
+
+          expect(response).to have_http_status(:not_found)
+          expect(response.parsed_body.deep_symbolize_keys)
+            .to eq({error: "Product is not currently in cart."})
+        end
+      end
+    end
+  end
 end
