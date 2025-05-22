@@ -6,15 +6,10 @@ class CartItem < ApplicationRecord
   validates_numericality_of :unit_price, :total_price, :quantity, greater_than_or_equal_to: 0
 
   before_validation :set_total_price
-  after_save :update_cart_total
 
   private
 
   def set_total_price
     self.total_price = unit_price * quantity
-  end
-
-  def update_cart_total
-    cart.recalculate_total_price!
   end
 end
