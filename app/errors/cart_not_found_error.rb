@@ -1,0 +1,1 @@
+class CartNotFoundError < StandardError; end
