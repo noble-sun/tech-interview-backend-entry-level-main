@@ -14,6 +14,7 @@ gem 'sidekiq-scheduler', '~> 5.0', '>= 5.0.3'
 gem 'guard'
 gem 'guard-livereload', require: false
 
+gem 'active_model_serializers'
 
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ]
