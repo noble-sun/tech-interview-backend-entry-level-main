@@ -12,8 +12,7 @@ RSpec.describe "Carts", type: :request do
 
           expect(response).to have_http_status(:success)
 
-          parsed_response = JSON.parse(response.body, symbolize_names: true)
-          expect(parsed_response).to include(
+          expect(response.parsed_body.deep_symbolize_keys).to include(
              :id, :total_price, :products => a_collection_containing_exactly(
               hash_including(:id, :name, :quantity, :unit_price, :total_price)
             )
@@ -36,8 +35,7 @@ RSpec.describe "Carts", type: :request do
           expect(Cart.count).to eq(1)
           expect(request.session[:cart_id]).to eq(cart.id)
 
-          parsed_response = JSON.parse(response.body, symbolize_names: true)
-          expect(parsed_response).to include(
+          expect(response.parsed_body.deep_symbolize_keys).to include(
              :id, :total_price, :products => a_collection_containing_exactly(
               hash_including(:id, :name, :quantity, :unit_price, :total_price)
             )
@@ -50,9 +48,60 @@ RSpec.describe "Carts", type: :request do
           post cart_path, params: { product_id: 123, quantity: 2 }
 
           expect(response).to have_http_status(:not_found)
-          expect(JSON.parse(response.body, symbolize_names: true))
+          expect(response.parsed_body.deep_symbolize_keys)
             .to eq({error: "Product does not exist."})
         end
+      end
+    end
+  end
+
+  describe "GET /cart" do
+    context "list cart details" do
+      it "successfully" do
+        cart = create(:cart, total_price: 60.0)
+        product = create(:product, name: "Product One", price: 10.0)
+        product_2 = create(:product, name: "Product Two", price: 20.0)
+        create(:cart_item, cart:, product:, quantity: 2, unit_price: 10.0, total_price: 20.0 )
+        create(:cart_item, cart:, product: product_2, quantity: 2, unit_price: 20.0, total_price: 40.0 )
+
+        allow_any_instance_of(ActionDispatch::Request::Session)
+          .to receive(:[]).with(:cart_id).and_return(cart.id)
+
+        get cart_path
+
+        expected_response = {
+          id: cart.id,
+          total_price: "60.0",
+          products: [
+            {
+              id: product.id,
+              name: "Product One",
+              quantity: 2,
+              unit_price: "10.0",
+              total_price: "20.0"
+            },
+            {
+              id: product_2.id,
+              name: "Product Two",
+              quantity: 2,
+              unit_price: "20.0",
+              total_price: "40.0"
+            }
+          ]
+        }
+
+        expect(response).to have_http_status(:success)
+        expect(response.parsed_body.deep_symbolize_keys).to eq(expected_response)
+      end
+    end
+
+    context "when there isn't a cart available" do
+      it "return error" do
+        get cart_path
+
+        expect(response).to have_http_status(:not_found)
+        expect(response.parsed_body.deep_symbolize_keys)
+          .to eq({error: "Cart not found."})
       end
     end
   end

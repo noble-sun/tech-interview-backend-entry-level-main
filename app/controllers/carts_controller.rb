@@ -17,6 +17,14 @@ class CartsController < ApplicationController
     render json: { error: "Product does not exist." }, status: :not_found
   end
 
+  def show
+    cart = Cart.find(session[:cart_id])
+
+    render json: cart, serializer: CartSerializer, status: :ok
+  rescue
+    render json: { error: "Cart not found." }, status: :not_found
+  end
+
   private
 
   def cart_params
