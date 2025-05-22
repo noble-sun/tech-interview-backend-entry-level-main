@@ -1,7 +1,7 @@
 class CartsController < ApplicationController
   ## TODO Escreva a lógica dos carrinhos aqui
 
-  def add_items
+  def create
     cart = Cart.find_or_create_by!(id: session[:cart_id])
 
     result = AddProductToCartService.call(
