@@ -6,8 +6,9 @@ class Cart < ApplicationRecord
 
   # TODO: lógica para marcar o carrinho como abandonado e remover se abandonado
 
-  def add_product(product:, quantity:)
+  def add_or_update_cart_item(product:, quantity:)
     item = cart_items.find_or_initialize_by(product_id: product.id)
+    quantity += item.quantity if item.persisted?
     item.update!(quantity:, unit_price: product.price)
 
     recalculate_total_price!

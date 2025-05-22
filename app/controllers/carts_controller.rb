@@ -24,6 +24,19 @@ class CartsController < ApplicationController
     render json: cart, serializer: CartSerializer, status: :ok
   end
 
+  def add_item
+    cart = Cart.find_by(id: session[:cart_id])
+    raise CartNotFoundError unless cart
+
+    result = AddOrUpdateCartItemService.call(
+      cart:,
+      product_id: cart_params[:product_id],
+      quantity: cart_params[:quantity]
+    )
+
+    render json: cart, serializer: CartSerializer, status: :ok
+  end
+
   private
 
   def cart_params
