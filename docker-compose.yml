@@ -50,6 +50,8 @@ services:
           - web
           - redis
           - db
+        volumes:
+          - .:/rails
     test:
         build: .
         command: bash -c "bundle exec rails db:prepare && bundle exec rspec"
