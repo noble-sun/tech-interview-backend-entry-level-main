@@ -25,5 +25,7 @@ class AddOrUpdateCartItemService
     raise ProductNotFoundError unless product
 
     cart.add_or_update_cart_item(product:, quantity:)
+
+    cart.reload
   end
 end
