@@ -28,4 +28,7 @@
 #       enabled: "ON"
 
 en:
-  hello: "Hello world"
+  errors:
+    cart_not_found: Cart not found.
+    product_not_found: Product not found.
+    product_not_in_cart: Product is not currently in cart.

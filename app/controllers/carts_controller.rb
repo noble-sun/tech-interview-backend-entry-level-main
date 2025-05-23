@@ -42,7 +42,7 @@ class CartsController < ApplicationController
     raise CartNotFoundError unless cart
 
     item = cart.cart_items.find_by(product_id: params[:product_id])
-    return render json: { error: "Product is not currently in cart." }, status: :not_found unless item
+    return render json: { error: I18n.t('errors.product_not_in_cart') }, status: :not_found unless item
 
     item.destroy!
     cart.recalculate_total_price!
@@ -57,10 +57,10 @@ class CartsController < ApplicationController
   end
 
   def render_product_not_found
-    render json: { error: "Product not found." }, status: :not_found
+    render json: { error: I18n.t('errors.product_not_found') }, status: :not_found
   end
 
   def render_cart_not_found
-    render json: { error: "Cart not found." }, status: :not_found
+    render json: { error: I18n.t('errors.cart_not_found') }, status: :not_found
   end
 end
