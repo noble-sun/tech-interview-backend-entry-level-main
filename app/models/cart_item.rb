@@ -10,6 +10,6 @@ class CartItem < ApplicationRecord
   private
 
   def set_total_price
-    self.total_price = unit_price * quantity
+    self.total_price = unit_price * quantity if unit_price && quantity
   end
 end
