@@ -3,3 +3,9 @@ mark_cart_as_abandoned_worker:
   class: MarkCartAsAbandonedWorker
   queue: default
   description: 'Mark carts as abandoned if they were not used for the last 3 hours'
+
+remove_abandoned_carts_worker:
+  cron: '30 * * * * *'
+  class: RemoveAbandonedCartsWorker
+  queue: default
+  description: 'Destroy abandoned carts that are more than 7 days old'
