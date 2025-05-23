@@ -29,6 +29,7 @@ Adicionar o produto no carrinho e devolver o payload com a lista de produtos do 
 
 
 ROTA: `/cart`
+
 Payload:
 ```js
 {
@@ -212,6 +213,34 @@ bundle exec rails server
 Executar os testes:
 ```bash
 bundle exec rspec
+```
+
+## Executando app com o docker
+Com docker e docker-compose instalados e inicializados:
+
+Executar projeto:
+```bash
+docker compose up web
+```
+
+Executar sidekiq:
+```bash
+docker compose up sidekiq
+```
+
+Executar os testes:
+```bash
+docker compose up test
+```
+
+Executar todos os serviços:
+```bash
+docker compose up
+```
+
+Entrar dentro de um container:
+```bash
+docker compose exec web bash
 ```
 
 ### Como enviar seu projeto
