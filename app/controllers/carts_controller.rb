@@ -1,5 +1,4 @@
 class CartsController < ApplicationController
-  ## TODO Escreva a lógica dos carrinhos aqui
   rescue_from ProductNotFoundError, with: :render_product_not_found
   rescue_from CartNotFoundError, with: :render_cart_not_found
 
