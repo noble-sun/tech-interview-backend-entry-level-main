@@ -1,6 +1,12 @@
 services:
     db:
         image: postgres:16-alpine
+        healthcheck:
+          test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+          interval: 30m
+          retries: 5
+          timeout: 5s
+          start_period: 30s
         environment:
           - POSTGRES_USER=postgres
           - POSTGRES_PASSWORD=password
@@ -25,18 +31,36 @@ services:
           - REDIS_URL=redis://redis:6379/0
         ports:
           - "3000:3000"
-        command: bash -c "bin/rails s -b 0"
+        command: bash -c "bundle exec rails db:prepare && bin/rails s -b 0"
         depends_on:
-          - db
+          db:
+            condition: service_healthy
+            restart: true
+          redis:
+            condition: service_started
+
+    sidekiq:
+        build: .
+        command: bundle exec sidekiq
+        environment:
+          - REDIS_URL=redis://redis:6379/0
+          - POSTGRES_USER=postgres
+          - POSTGRES_PASSWORD=password
+        depends_on:
+          - web
           - redis
+          - db
     test:
         build: .
-        command: bash -c " bundle exec rails db:prepare && bundle exec rspec"
+        command: bash -c "bundle exec rails db:prepare && bundle exec rspec"
         volumes:
             - .:/rails
         depends_on:
-            - db
-            - redis 
+          db:
+            condition: service_healthy
+            restart: true
+          redis:
+            condition: service_started
         environment:
             POSTGRES_USER: postgres
             POSTGRES_PASSWORD: password
