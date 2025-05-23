@@ -2,6 +2,6 @@ class RemoveAbandonedCartsWorker
   include Sidekiq::Job
 
   def perform
-    Cart.abandoned.where("updated_at < ?", 7.days.ago).destroy_all
+    Cart.abandoned.find_each(&:remove_if_abandoned)
   end
 end
