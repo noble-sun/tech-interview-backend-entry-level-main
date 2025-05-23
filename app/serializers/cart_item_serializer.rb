@@ -1,4 +1,4 @@
-class ProductSerializer < ActiveModel::Serializer
+class CartItemSerializer < ActiveModel::Serializer
   attribute(:id) {object.product.id}
   attribute(:name) {object.product.name}
   attribute :quantity
