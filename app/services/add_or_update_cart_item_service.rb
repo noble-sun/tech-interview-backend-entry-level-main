@@ -6,7 +6,7 @@ class AddOrUpdateCartItemService
   def initialize(cart:, product_id:, quantity:)
     @cart = cart
     @product_id = product_id
-    @quantity = quantity
+    @quantity = quantity.to_i
   end
 
   def call 

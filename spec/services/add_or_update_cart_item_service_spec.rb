@@ -71,6 +71,40 @@ RSpec.describe AddOrUpdateCartItemService, type: :service do
         expect(cart.cart_items.last.quantity).to eq(3)
         expect(cart.cart_items.last.total_price).to eq(30.0)
       end
+
+      context "when removing quantity from the product" do
+        context "when quantity is bigger than current quantity" do
+          it "remove product from cart" do
+            cart = create(:cart, total_price: 20.0)
+            product = create(:product, price: 10.0)
+            create(:cart_item, cart:, product:, quantity: 2, unit_price: 10.0, total_price: 20.0)
+
+            result = described_class.call(cart:, product_id: product.id, quantity: -1)
+
+            cart.reload
+            expect(result).to be_truthy
+            expect(cart.cart_items.count).to eq(1)
+            expect(cart.total_price).to eq(10.0)
+            expect(cart.cart_items.last.quantity).to eq(1)
+            expect(cart.cart_items.last.total_price).to eq(10.0)
+          end
+        end
+
+        context "when quantity is less or equal to current quantity" do
+          it "remove product from cart" do
+            cart = create(:cart, total_price: 20.0)
+            product = create(:product, price: 10.0)
+            create(:cart_item, cart:, product:, quantity: 2, unit_price: 10.0, total_price: 20.0)
+
+            result = described_class.call(cart:, product_id: product.id, quantity: -2)
+
+            cart.reload
+            expect(result).to be_truthy
+            expect(cart.cart_items.count).to eq(0)
+            expect(cart.total_price).to eq(0.0)
+          end
+        end
+      end
     end
   end
 end

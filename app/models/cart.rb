@@ -5,14 +5,18 @@ class Cart < ApplicationRecord
   validates_numericality_of :total_price, greater_than_or_equal_to: 0
   validates_presence_of :status, :total_price
   validates :last_interaction_at, presence: true, unless: :new_record?
-  # TODO: lógica para marcar o carrinho como abandonado e remover se abandonado
 
   enum :status, { active: 'active', abandoned: 'abandoned' }
 
   def add_or_update_cart_item(product:, quantity:)
     item = cart_items.find_or_initialize_by(product_id: product.id)
     quantity += item.quantity if item.persisted?
-    item.update!(quantity:, unit_price: product.price)
+
+    if quantity.negative? || quantity.zero?
+      item.destroy!
+    else
+      item.update!(quantity:, unit_price: product.price)
+    end
 
     recalculate_total_price!
   end

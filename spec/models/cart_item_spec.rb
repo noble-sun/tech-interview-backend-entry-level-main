@@ -72,23 +72,23 @@ RSpec.describe CartItem, type: :model do
 
     context "numeriality" do
       it 'total_price' do
-        cart = described_class.new(total_price: -1)
+        cart_item = described_class.new(total_price: -1)
 
-        expect(cart.valid?).to be_falsey
-        expect(cart.errors[:total_price]).to include("must be greater than or equal to 0")
+        expect(cart_item.valid?).to be_falsey
+        expect(cart_item.errors[:total_price]).to include("must be greater than or equal to 0")
       end
 
       it 'unit_price' do
-        cart = described_class.new(unit_price: -1)
+        cart_item = described_class.new(unit_price: -1)
         
-        expect(cart.valid?).to be_falsey
-        expect(cart.errors[:unit_price]).to include("must be greater than or equal to 0")
+        expect(cart_item.valid?).to be_falsey
+        expect(cart_item.errors[:unit_price]).to include("must be greater than or equal to 0")
       end
 
       it 'quantity' do
-        cart = described_class.new(quantity: -1)
-        expect(cart.valid?).to be_falsey
-        expect(cart.errors[:quantity]).to include("must be greater than or equal to 0")
+        cart_item = described_class.new(quantity: -1)
+        expect(cart_item.valid?).to be_falsey
+        expect(cart_item.errors[:quantity]).to include("must be greater than or equal to 1")
       end
     end
   end

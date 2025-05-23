@@ -108,7 +108,7 @@ RSpec.describe "Carts", type: :request do
   describe "POST /cart/add_item" do
     context 'when the product already is in the cart' do
       let(:product) { create(:product, name: "Test Product", price: 10.0) }
-      let(:cart) { create(:cart) }
+      let(:cart) { create(:cart, total_price: 10.0) }
       let!(:cart_item) { create(:cart_item, cart:, product:) }
 
       subject do
@@ -121,6 +121,24 @@ RSpec.describe "Carts", type: :request do
           .to receive(:[]).with(:cart_id).and_return(cart.id)
 
         expect { subject }.to change { cart_item.reload.quantity }.by(2)
+        expect(cart.reload.total_price).to eq(30.0)
+      end
+    end
+
+    context "when quantity is less or equal to current product quantity" do
+      it "remove product from cart" do
+        cart = create(:cart, total_price: 10.0)
+        product = create(:product)
+        cart_item = create(:cart_item, cart:, product:, quantity: 1)
+
+        allow_any_instance_of(ActionDispatch::Request::Session)
+          .to receive(:[]).with(:cart_id).and_return(cart.id)
+
+        post add_item_cart_path, params: { product_id: product.id, quantity: -1 }
+
+        expect(response.parsed_body.deep_symbolize_keys).to eq(
+          { id: cart.id, total_price: "0.0", products: [] }
+        )
       end
     end
 

@@ -127,8 +127,41 @@ RSpec.describe Cart, type: :model do
         expect(cart.total_price).to eq(cart_item.total_price)
         expect(cart.last_interaction_at).to eq(time_of_action)
       end
+
+      context "when removing a quantity of a existing product" do
+        context "when current quantity is higher than removing quantity" do
+          it "updates product quantity" do
+            cart = create(:shopping_cart)
+            product = create(:product)
+            cart_item = create(:cart_item, cart:, product:, quantity: 5,
+              unit_price: product.price, total_price: product.price
+            )
+
+              expect {
+                cart.add_or_update_cart_item(product:, quantity: -2)
+              }.to change { cart_item.reload.quantity }.from(5).to(3)
+
+            expect(cart.total_price).to eq(CartItem.last.total_price)
+          end
+        end
+
+        context "when current quantity is lower or equal to removing quantity" do
+          it "removes cart_item" do
+            cart = create(:shopping_cart)
+            product = create(:product)
+            cart_item = create(:cart_item, cart:, product:, quantity: 1,
+              unit_price: product.price, total_price: product.price
+            )
+
+            expect {
+              cart.add_or_update_cart_item(product:, quantity: -1)
+            }.to change { cart.cart_items.count }.by(-1)
+
+            expect(cart.total_price).to eq(0.0)
+            expect(CartItem.count).to eq(0)
+          end
+        end
+      end
     end
   end
 end
-
-
