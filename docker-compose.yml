@@ -31,13 +31,15 @@ services:
           - redis
     test:
         build: .
-        command: bundle exec rspec
+        command: bash -c " bundle exec rails db:prepare && bundle exec rspec"
         volumes:
             - .:/rails
         depends_on:
             - db
             - redis 
         environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: password
             DATABASE_URL: postgresql://postgres:password@db:5432/store_test
             REDIS_URL: redis://redis:6379/0
 volumes:
