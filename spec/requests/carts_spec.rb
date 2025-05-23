@@ -1,7 +1,6 @@
 require 'rails_helper'
 
 RSpec.describe "Carts", type: :request do
-  pending "TODO: Escreva os testes de comportamento do controller de carrinho necessários para cobrir a sua implmentação #{__FILE__}"
   describe 'POST /cart' do
     context 'add a new product to cart' do
       context 'when cart do not exist' do
