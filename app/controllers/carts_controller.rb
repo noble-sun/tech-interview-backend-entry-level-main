@@ -40,15 +40,11 @@ class CartsController < ApplicationController
     cart = Cart.find_by(id: session[:cart_id])
     raise CartNotFoundError unless cart
 
-    item = cart.cart_items.find_by(product_id: params[:product_id])
-    return render json: { error: I18n.t('errors.product_not_in_cart') }, status: :not_found unless item
-
-    item.destroy!
-    cart.recalculate_total_price
-    cart.touch_last_interaction_at
-    cart.save!
+    cart = RemoveItemFromCartService.call(cart:, product_id: cart_params[:product_id])
 
     render json: cart.reload, serializer: CartSerializer, status: :ok
+  rescue ProductNotInCartError
+    render json: { error: I18n.t('errors.product_not_in_cart') }, status: :unprocessable_entity
   end
 
   private

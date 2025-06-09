@@ -1,10 +1,10 @@
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe "Carts", type: :request do
-  describe 'POST /cart' do
-    context 'add a new product to cart' do
-      context 'when cart do not exist' do
-        it 'creates a new cart and and save id in session' do
+  describe "POST /cart" do
+    context "add a new product to cart" do
+      context "when cart do not exist" do
+        it "creates a new cart and and save id in session" do
           product = create(:product)
 
           post cart_path, params: { product_id: product.id, quantity: 2 }
@@ -20,8 +20,8 @@ RSpec.describe "Carts", type: :request do
         end
       end
 
-      context 'when cart already exist' do
-        it 'update the current cart and add the product' do
+      context "when cart already exist" do
+        it "update the current cart and add the product" do
           cart = create(:cart)
           product = create(:product)
 
@@ -42,8 +42,8 @@ RSpec.describe "Carts", type: :request do
         end
       end
 
-      context 'when product does not exist' do
-        it 'return error message' do
+      context "when product does not exist" do
+        it "return error message" do
           post cart_path, params: { product_id: 123, quantity: 2 }
 
           expect(response).to have_http_status(:not_found)
@@ -106,17 +106,17 @@ RSpec.describe "Carts", type: :request do
   end
 
   describe "POST /cart/add_item" do
-    context 'when the product already is in the cart' do
+    context "when the product already is in the cart" do
       let(:product) { create(:product, name: "Test Product", price: 10.0) }
       let(:cart) { create(:cart, total_price: 10.0) }
       let!(:cart_item) { create(:cart_item, cart:, product:) }
 
       subject do
-        post '/cart/add_item', params: { product_id: product.id, quantity: 1 }, as: :json
-        post '/cart/add_item', params: { product_id: product.id, quantity: 1 }, as: :json
+        post "/cart/add_item", params: { product_id: product.id, quantity: 1 }, as: :json
+        post "/cart/add_item", params: { product_id: product.id, quantity: 1 }, as: :json
       end
 
-      it 'updates the quantity of the existing item in the cart' do
+      it "updates the quantity of the existing item in the cart" do
         allow_any_instance_of(ActionDispatch::Request::Session)
           .to receive(:[]).with(:cart_id).and_return(cart.id)
 
@@ -143,7 +143,7 @@ RSpec.describe "Carts", type: :request do
     end
 
     context "when product does not exist" do
-      it 'return error message' do
+      it "return error message" do
         cart = create(:cart)
 
         allow_any_instance_of(ActionDispatch::Request::Session)
@@ -225,7 +225,7 @@ RSpec.describe "Carts", type: :request do
       end
 
       context "when product is not in the cart" do
-        it "return error" do
+        it "return error message" do
           cart = create(:cart, total_price: 60.0)
           product = create(:product, name: "Product One", price: 10.0)
           product_not_in_cart = create(:product, name: "Product Two", price: 20.0)
@@ -233,10 +233,12 @@ RSpec.describe "Carts", type: :request do
 
           allow_any_instance_of(ActionDispatch::Request::Session)
             .to receive(:[]).with(:cart_id).and_return(cart.id)
+          allow_any_instance_of(RemoveItemFromCartService)
+            .to receive(:call).and_raise(ProductNotInCartError)
 
           delete remove_item_cart_path(product_not_in_cart.id)
 
-          expect(response).to have_http_status(:not_found)
+          expect(response).to have_http_status(:unprocessable_entity)
           expect(response.parsed_body.deep_symbolize_keys)
             .to eq({error: "Product is not currently in cart."})
         end

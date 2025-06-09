@@ -1,0 +1,1 @@
+class ProductNotInCartError < StandardError; end
