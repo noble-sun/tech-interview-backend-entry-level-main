@@ -15,7 +15,7 @@ class Cart < ApplicationRecord
     if quantity.negative? || quantity.zero?
       item.destroy!
     else
-      item.update!(quantity:, unit_price: product.price)
+      item.update_quantity_and_derived_prices!(quantity:)
     end
 
     recalculate_total_price!

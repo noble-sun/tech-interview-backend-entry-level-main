@@ -1,0 +1,1 @@
+class MissingProductError < StandardError; end

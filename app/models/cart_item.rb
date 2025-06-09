@@ -6,11 +6,10 @@ class CartItem < ApplicationRecord
   validates_numericality_of :unit_price, :total_price, greater_than_or_equal_to: 0
   validates_numericality_of :quantity, greater_than_or_equal_to: 1
 
-  before_validation :set_total_price
+  def update_quantity_and_derived_prices!(quantity:)
+    raise MissingProductError, I18n.t('errors.missing_product') unless product
 
-  private
-
-  def set_total_price
-    self.total_price = unit_price * quantity if unit_price && quantity
+    price = product.price
+    update!(quantity:, unit_price: price, total_price: price * quantity)
   end
 end

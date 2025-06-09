@@ -23,29 +23,6 @@ RSpec.describe CartItem, type: :model do
     end
   end
 
-  context "before_validation" do
-    context ":set_total_price" do
-      it "sets total_price based on unit_price and quantity" do
-        cart = create(:cart)
-        product = create(:product)
-        cart_item = described_class.new(cart:, product:, unit_price: 10, quantity: 2)
-
-        expect(cart_item.valid?).to be_truthy
-        expect(cart_item.total_price).to eq(20.0)
-      end
-
-      context "when unit_price or quantity is nil" do
-        it "does not raise error" do
-          cart = create(:cart)
-          product = create(:product)
-          cart_item = described_class.new(cart:, product:)
-
-          expect { cart_item.valid? }.to_not raise_error
-        end
-      end
-    end
-  end
-
   context "validate" do
     context "presence" do
       it "quantity" do
@@ -71,24 +48,49 @@ RSpec.describe CartItem, type: :model do
     end
 
     context "numeriality" do
-      it 'total_price' do
+      it "total_price" do
         cart_item = described_class.new(total_price: -1)
 
         expect(cart_item.valid?).to be_falsey
         expect(cart_item.errors[:total_price]).to include("must be greater than or equal to 0")
       end
 
-      it 'unit_price' do
+      it "unit_price" do
         cart_item = described_class.new(unit_price: -1)
         
         expect(cart_item.valid?).to be_falsey
         expect(cart_item.errors[:unit_price]).to include("must be greater than or equal to 0")
       end
 
-      it 'quantity' do
+      it "quantity" do
         cart_item = described_class.new(quantity: -1)
         expect(cart_item.valid?).to be_falsey
         expect(cart_item.errors[:quantity]).to include("must be greater than or equal to 1")
+      end
+    end
+  end
+
+  describe "#update_quantity_and_derived_prices!" do
+    context "update unit_price and total_price based on associated product" do
+      it "successfully" do
+        cart = create(:cart)
+        product = create(:product, price: 10.0)
+        cart_item = described_class.new(cart:, product:, unit_price: 10.0, quantity: 2)
+
+        cart_item.update_quantity_and_derived_prices!(quantity: 3)
+        expect(cart_item.quantity).to eq(3)
+        expect(cart_item.unit_price).to eq(10.0)
+        expect(cart_item.total_price).to eq(30.0)
+      end
+
+      context "whne product is not associated" do
+        it "raise error" do
+          cart = create(:cart)
+          cart_item = described_class.new(cart:)
+
+          expect { cart_item.update_quantity_and_derived_prices!(quantity: 1) }
+            .to raise_error(MissingProductError, "Cannot set pricing: product must be present")
+        end
       end
     end
   end
