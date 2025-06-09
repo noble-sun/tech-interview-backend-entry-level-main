@@ -10,9 +10,15 @@ class AddOrUpdateCartItemService
   end
 
   def call 
-    add_or_update_cart_item
+    ActiveRecord::Base.transaction do
+      item = add_or_update_cart_item
 
-    true
+      cart.recalculate_total_price
+      cart.touch_last_interaction_at
+      cart.save!
+
+      item
+    end
   end
 
   private
@@ -25,7 +31,5 @@ class AddOrUpdateCartItemService
     raise ProductNotFoundError unless product
 
     cart.add_or_update_cart_item(product:, quantity:)
-
-    cart.reload
   end
 end

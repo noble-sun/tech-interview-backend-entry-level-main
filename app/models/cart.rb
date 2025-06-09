@@ -11,20 +11,17 @@ class Cart < ApplicationRecord
   def add_or_update_cart_item(product:, quantity:)
     item = cart_items.find_or_initialize_by(product_id: product.id)
     quantity += item.quantity if item.persisted?
+    quantity <= 0 ? item.destroy! : item.update_quantity_and_derived_prices!(quantity:)
 
-    if quantity.negative? || quantity.zero?
-      item.destroy!
-    else
-      item.update_quantity_and_derived_prices!(quantity:)
-    end
-
-    recalculate_total_price!
+    item.persisted? ? item : nil
   end
 
-  def recalculate_total_price!
+  def recalculate_total_price
     self.total_price = cart_items.sum(:total_price)
-    self.last_interaction_at = DateTime.now 
-    save!
+  end
+
+  def touch_last_interaction_at
+    self.last_interaction_at = Time.current
   end
 
   def mark_as_abandoned

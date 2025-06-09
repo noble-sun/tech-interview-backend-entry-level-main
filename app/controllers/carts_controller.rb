@@ -13,7 +13,7 @@ class CartsController < ApplicationController
 
     session[:cart_id] = cart.id if result
 
-    render json: cart, serializer: CartSerializer, status: :ok
+    render json: cart.reload, serializer: CartSerializer, status: :ok
   end
 
   def show
@@ -33,7 +33,7 @@ class CartsController < ApplicationController
       quantity: cart_params[:quantity]
     )
 
-    render json: cart, serializer: CartSerializer, status: :ok
+    render json: cart.reload, serializer: CartSerializer, status: :ok
   end
 
   def remove_item
@@ -44,7 +44,9 @@ class CartsController < ApplicationController
     return render json: { error: I18n.t('errors.product_not_in_cart') }, status: :not_found unless item
 
     item.destroy!
-    cart.recalculate_total_price!
+    cart.recalculate_total_price
+    cart.touch_last_interaction_at
+    cart.save!
 
     render json: cart.reload, serializer: CartSerializer, status: :ok
   end
