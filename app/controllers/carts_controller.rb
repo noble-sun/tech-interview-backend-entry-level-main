@@ -5,49 +5,47 @@ class CartsController < ApplicationController
   def create
     cart = Cart.find_or_create_by!(id: session[:cart_id])
 
-    result = AddOrUpdateCartItemService.call(
+    AddOrUpdateCartItemService.call(
       cart:,
       product_id: cart_params[:product_id],
       quantity: cart_params[:quantity]
     )
 
-    session[:cart_id] = cart.id if result
+    session[:cart_id] = cart.id
 
     render json: cart.reload, serializer: CartSerializer, status: :ok
   end
 
   def show
-    cart = Cart.find_by(id: session[:cart_id])
-    raise CartNotFoundError unless cart
-
-    render json: cart, serializer: CartSerializer, status: :ok
+    render json: current_cart, serializer: CartSerializer, status: :ok
   end
 
   def add_item
-    cart = Cart.find_by(id: session[:cart_id])
-    raise CartNotFoundError unless cart
-
-    result = AddOrUpdateCartItemService.call(
-      cart:,
+    AddOrUpdateCartItemService.call(
+      cart: current_cart,
       product_id: cart_params[:product_id],
       quantity: cart_params[:quantity]
     )
 
-    render json: cart.reload, serializer: CartSerializer, status: :ok
+    render json: current_cart.reload, serializer: CartSerializer, status: :ok
   end
 
   def remove_item
-    cart = Cart.find_by(id: session[:cart_id])
-    raise CartNotFoundError unless cart
+    RemoveItemFromCartService.call(
+      cart: current_cart,
+      product_id: cart_params[:product_id]
+    )
 
-    cart = RemoveItemFromCartService.call(cart:, product_id: cart_params[:product_id])
-
-    render json: cart.reload, serializer: CartSerializer, status: :ok
+    render json: current_cart, serializer: CartSerializer, status: :ok
   rescue ProductNotInCartError
     render json: { error: I18n.t('errors.product_not_in_cart') }, status: :unprocessable_entity
   end
 
   private
+
+  def current_cart
+    @current_cart ||= Cart.find_by(id: session[:cart_id]) || raise(CartNotFoundError)
+  end
 
   def cart_params
     params.permit(:product_id, :quantity)
